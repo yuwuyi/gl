@@ -21,9 +21,10 @@
 
 #include "ActionWindow.h"
 
-GLFWwindow *window;
+GLFWwindow *window = nullptr;
 ActionWindow *actWindow = nullptr;
 RegionGrowing *regionGrowing = nullptr;
+
 
 extern bool mousePressed[2];
 //projection and modelview matrices
@@ -108,8 +109,15 @@ static void glfw_mouse_button_callback(GLFWwindow* window, int button, int actio
 
     if(progStatus == PS_PICKING_SEED && !ImGui::IsMouseHoveringAnyWindow() && button==GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
+        //TODO: prevent pickingFace multi-entry
+        //TODO: remove pickingFace if getting wrong
+        if (pickingFace) {
+            pickingFace->setColor(ColorManager::COLOR_PATCH_CENTER_FACE);
+			pickingFace->lock();
+            regionGrowing->initPatches(pickingFace);
+            pickingFace = nullptr;
+        }
 
-        //Point Location
     }
 }
 
@@ -134,6 +142,9 @@ static void glfw_mouse_move_callback(GLFWwindow* window, double xpos, double ypo
         double pos[3] = {xx + center.x - translate_x, yy  + center.y - translate_y, 0};
         presults = kd_nearest(ptree, pos);
 
+		if (!presults) {
+			return;
+		}
         Vertex *v = (Vertex*)kd_res_item( presults, pos );
 
         //Point Location
@@ -141,19 +152,16 @@ static void glfw_mouse_move_callback(GLFWwindow* window, double xpos, double ypo
         pickingFace = locate(v, Point(xx + center.x,  yy  + center.y, 0));
         if (pickingFace != prevPickingFace) {
             if (pickingFace) {
-                pickingFace->color = ColorManager::COLOR_PICKED_FACE;
+                pickingFace->setColor(ColorManager::COLOR_PICKED_FACE);
             }
             if (prevPickingFace) {
-                prevPickingFace->color = ColorManager::COLOR_NORMAL_FACE;
+                prevPickingFace->setColor(ColorManager::COLOR_NORMAL_FACE);
             }
-
+		
         }
     }
 
 }
-
-
-
 
 static void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
@@ -237,7 +245,10 @@ void constructKDTree(Mesh *mesh) {
     /* add some random nodes to the tree (assert nodes are successfully inserted) */
     for(MeshVertexIterator mvit(mesh); !mvit.end(); ++mvit) {
         Vertex *v = *mvit;
-        assert( 0 == kd_insert3( ptree, v->point()[0], v->point()[1], v->point()[2], v ) );
+        if ( 0 != kd_insert3( ptree, v->point()[0], v->point()[1], v->point()[2], v ) ) {
+			std::cout << "kdtree fail!\n";
+			exit(-1);
+		}
     }
 }
 
@@ -267,11 +278,11 @@ static void prepareMeshData(Mesh *mesh) {
 
     for (MeshFaceIterator mfit(mesh); !mfit.end(); ++mfit) {
         Face *f = *mfit;
-        f->color = ColorManager::COLOR_NORMAL_FACE;
+        f->setColor(ColorManager::COLOR_NORMAL_FACE);
         for (FaceVertexIterator fvit(f); !fvit.end(); ++fvit) {
-//            indices.push_back((*fvit)->index());
+			
             pos.push_back(glm::vec2((*fvit)->point()[0], (*fvit)->point()[1]));
-            colors.push_back(glm::vec4(f->color[0], f->color[1], f->color[2], 1.0f));
+            colors.push_back(glm::vec4(ColorManager::COLOR_NORMAL_FACE[0], ColorManager::COLOR_NORMAL_FACE[1], ColorManager::COLOR_NORMAL_FACE[2], 1.0f));
         }
     }
     triangle_num = pos.size();
@@ -433,13 +444,10 @@ int main(int argc, char *argv[]) {
     if (!glfwInit())
         exit(EXIT_FAILURE);
 
-
-
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
 
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 
@@ -496,16 +504,7 @@ int main(int argc, char *argv[]) {
         static bool show_test_window = false;
         static bool show_another_window = false;
 
-        // 1. Show a simple window
-        // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-        if(0) {
-            static float f;
-            ImGui::Text("Hello, world!");
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-            show_test_window ^= ImGui::Button("Test Window");
-//            show_another_window ^= ImGui::Button("Another Window");
-            ImGui::Checkbox("Picking", &isPicking);
-        }
+  
 
         // 2. Show another simple window, this time using an explicit Begin/End pair
         if (0 && show_another_window)
@@ -516,27 +515,34 @@ int main(int argc, char *argv[]) {
         }
 
         // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-        if (1 || show_test_window)
+        if ( 0 && show_test_window)
         {
             ImGui::SetNewWindowDefaultPos(ImVec2(650, 20));        // Normally user code doesn't need/want to call this, because positions are saved in .ini file. Here we just want to make the demo initial state a bit more friendly!
             ImGui::ShowTestWindow(&show_test_window);
         }
 
+		//here is the mode window..
+		{
+			const ImGuiWindowFlags layout_flags 
+				= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar  | ImGuiWindowFlags_NoMove	| ImGuiWindowFlags_NoResize;
+			
+			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.7, 0.7, 0.7, 0));
+			ImGui::Begin("Mode", nullptr, ImVec2(200,20), 0.6, layout_flags);
+			ImGui::SetWindowPos(ImVec2(0, 0));
+			ImGui::TextColored(ImVec4(1, 0, 0, 1),MODE_STR[progStatus]);
+			ImGui::End();
+			ImGui::PopStyleColor();
+		}
+
         {
             if (actWindow->isShown()) {
-
                actWindow->render();
             }
         }
 
-
         if (button_pressed[0]) {
             regionGrowing->grow();
         }
-
-
-
-
 
         // Rendering
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
@@ -548,7 +554,8 @@ int main(int argc, char *argv[]) {
         for (MeshFaceIterator mfit(mesh); !mfit.end(); ++mfit) {
             Face *f = *mfit;
             for (FaceVertexIterator fvit(f); !fvit.end(); ++fvit) {
-                 colors.push_back(glm::vec4(f->color[0], f->color[1], f->color[2], 1.0f));
+				Point fcol = f->getColor();
+                 colors.push_back(glm::vec4(fcol[0], fcol[1], fcol[2], 1.0f));
             }
         }
 

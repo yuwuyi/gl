@@ -2,11 +2,12 @@
 #include <iostream>
 #include <time.h>
 
+
 #include "../MeshLib_Core/Mesh.h"
 
 void RegionGrowing::initPatches(Face *face) {
 	GrowingPatch *p = new GrowingPatch;
-    face->color = Point(1, 0, 0);
+
     face2patchMap[face] = p;
 	p->center = calcCenter(face);
 	for (FaceHalfedgeIterator fheit(face); !fheit.end(); ++fheit) {
@@ -94,7 +95,7 @@ bool RegionGrowing::grow(GrowingPatch *patch) {
 	for (auto f : candidateFaces) {
 		face2patchMap[f] = patch;
 		f->PropertyStr() =  "rgb=(1 0 0)";
-        f->color = patch->color;
+        f->setColor(patch->color);
 
         for (FaceHalfedgeIterator fheit(f); !fheit.end(); ++fheit) {
             candidateFrontHalfEdges.insert(*fheit);

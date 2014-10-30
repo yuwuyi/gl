@@ -1,3 +1,8 @@
+#ifdef _MSC_VER
+#pragma warning (disable: 4996)         // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
+#include <Windows.h>
+#include <Imm.h>
+#endif
 #include "GLSLShader.h"
 #include <vector>
 #include <GLFW/glfw3.h>
@@ -17,6 +22,12 @@
 
 #include "imgui/stb_image.h"                  // for .png loading
 #include "imgui/stb_textedit.h"                  // for .png loading
+
+#ifdef _MSC_VER
+#define GLFW_EXPOSE_NATIVE_WIN32
+#define GLFW_EXPOSE_NATIVE_WGL
+#include <GLFW/glfw3native.h>
+#endif
 
 extern GLFWwindow *window;
 
@@ -41,6 +52,23 @@ static void ImImpl_SetClipboardTextFn(const char* text)
     glfwSetClipboardString(window, text);
 }
 
+#ifdef _MSC_VER
+// Notify OS Input Method Editor of text input position (e.g. when using Japanese/Chinese inputs, otherwise this isn't needed)
+static void ImImpl_ImeSetInputScreenPosFn(int x, int y)
+{
+	HWND hwnd = glfwGetWin32Window(window);
+	if (HIMC himc = ImmGetContext(hwnd))
+	{
+		COMPOSITIONFORM cf;
+		cf.ptCurrentPos.x = x;
+		cf.ptCurrentPos.y = y;
+		cf.dwStyle = CFS_FORCE_POSITION;
+		ImmSetCompositionWindow(himc, &cf);
+	}
+}
+
+
+#endif
 void InitImGui()
 {
     int w, h;
