@@ -6,7 +6,7 @@
 #include "Halfedge.h"
 #include "Vertex.h"
 #include "Point.h"
-#include <hash_map>
+#include <vector>
 #include <list>
 
 class Mesh

@@ -42,7 +42,7 @@ set(KDTREE_SRC ${KDTREE_DIR}/kdtree.h ${KDTREE_DIR}/kdtree.c)
 set(GROWING_DIR "growing")
 set(GROWING_SRC ${GROWING_DIR}/growing.h ${GROWING_DIR}/growing.cpp)
 
-set(SOURCE_FILES main.cpp  GLSLShader.cpp GLSLShader.h glew/src/glew.c imgui_stuff.h imgui_stuff.cpp
+set(SOURCE_FILES main.cpp  GLSLShader.cpp GLSLShader.h glew/src/glew.c GUI.h GUI.cpp imgui_stuff.h imgui_stuff.cpp
     ${SHADERS_SRC} ${IMGUI_SRC} ${MESHLIB_SRC} ${KDTREE_SRC} ${GROWING_SRC})
 
 add_executable(gl ${SOURCE_FILES})

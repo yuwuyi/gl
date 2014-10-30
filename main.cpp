@@ -492,7 +492,7 @@ int main(int argc, char *argv[]) {
         }
 
         // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-        if (0 && show_test_window)
+        if ( show_test_window)
         {
             ImGui::SetNewWindowDefaultPos(ImVec2(650, 20));        // Normally user code doesn't need/want to call this, because positions are saved in .ini file. Here we just want to make the demo initial state a bit more friendly!
             ImGui::ShowTestWindow(&show_test_window);
@@ -506,16 +506,17 @@ int main(int argc, char *argv[]) {
                 static bool no_move = false;
                 static bool no_scrollbar = false;
                 static float fill_alpha = 0.65f;
-
+                ImGuiStyle& style = ImGui::GetStyle();
+                style.ScrollBarWidth = 25.0f;
                 const ImGuiWindowFlags layout_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar  | ImGuiWindowFlags_NoMove
                 | ImGuiWindowFlags_NoResize;
-                ImGui::Begin("Action Window", &action_window, ImVec2(window_width / 3,80), fill_alpha, layout_flags);
-                ImGui::SetWindowPos(ImVec2(window_width / 3 , window_height /2 - 40));
+                ImGui::Begin("Action Window", &action_window, ImVec2(window_width / 3,200), fill_alpha, layout_flags);
+                ImGui::SetWindowPos(ImVec2(window_width / 3 , window_height /2 - 100));
                 static ImGuiTextFilter filter;
                 ImGui::SetKeyboardFocusHere();
                 filter.Draw("",ImGui::GetWindowWidth());
                 const char* lines[] = { "Seed Picking:     Off", "bbb1.c", "ccc1.c", "aaa2.cpp", "bbb2.cpp", "ccc2.cpp", "abc.h", "hello, world" };
-                ImGui::BeginChild("",ImVec2(ImGui::GetWindowWidth(),40));
+                ImGui::BeginChild("",ImVec2(ImGui::GetWindowWidth(),200));
                 for (size_t i = 0; i < 8; i++) {
                     if (filter.PassFilter(lines[i])) {
                          if (button_pressed[i] = ImGui::Button(lines[i], ImVec2(ImGui::GetWindowWidth()-10,20))) {
@@ -523,7 +524,7 @@ int main(int argc, char *argv[]) {
                          }
                     }
                 }
-
+                style.ScrollBarWidth = 16.0f;
 
                // ImGui::SetScrollPosHere();
                 ImGui::EndChild();
