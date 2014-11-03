@@ -4,8 +4,6 @@
 #include "imgui_stuff.h"
 #include "imgui/imgui.h"
 
-
-
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -25,7 +23,6 @@ GLFWwindow *window = nullptr;
 ActionWindow *actWindow = nullptr;
 RegionGrowing *regionGrowing = nullptr;
 
-
 extern bool mousePressed[2];
 //projection and modelview matrices
 glm::mat4  P = glm::mat4(1);
@@ -38,11 +35,7 @@ struct kdtree* ptree = nullptr;
 struct kdres *presults;
 
 Face *pickingFace = nullptr;
-
-
-
 ProgStatus progStatus = PS_NORMAL;
-
 GLSLShader colorShader, textureShader, wireframeShader;
 
 void barycentric(Face *f, const Point& point, float  (&lambda)[3]) {
@@ -522,12 +515,14 @@ int main(int argc, char *argv[]) {
         }
 
 		//here is the mode window..
-		{
-			const ImGuiWindowFlags layout_flags 
-				= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar  | ImGuiWindowFlags_NoMove	| ImGuiWindowFlags_NoResize;
+		if (0) {
 			
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.7, 0.7, 0.7, 0));
+			const ImGuiWindowFlags layout_flags 
+				= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar  | ImGuiWindowFlags_NoMove	| ImGuiWindowFlags_NoResize;
+
 			ImGui::Begin("Mode", nullptr, ImVec2(200,20), 0.6, layout_flags);
+			
 			ImGui::SetWindowPos(ImVec2(0, 0));
 			ImGui::TextColored(ImVec4(1, 0, 0, 1),MODE_STR[progStatus]);
 			ImGui::End();
