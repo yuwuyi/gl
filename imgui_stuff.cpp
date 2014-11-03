@@ -1,3 +1,8 @@
+#ifdef _MSC_VER
+#pragma warning (disable: 4996)         // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
+#include <Windows.h>
+#include <Imm.h>
+#endif
 #include "GLSLShader.h"
 #include <vector>
 #include <GLFW/glfw3.h>
@@ -17,6 +22,12 @@
 
 #include "imgui/stb_image.h"                  // for .png loading
 #include "imgui/stb_textedit.h"                  // for .png loading
+
+#ifdef _MSC_VER
+#define GLFW_EXPOSE_NATIVE_WIN32
+#define GLFW_EXPOSE_NATIVE_WGL
+#include <GLFW/glfw3native.h>
+#endif
 
 extern GLFWwindow *window;
 
@@ -41,6 +52,23 @@ static void ImImpl_SetClipboardTextFn(const char* text)
     glfwSetClipboardString(window, text);
 }
 
+#ifdef _MSC_VER
+// Notify OS Input Method Editor of text input position (e.g. when using Japanese/Chinese inputs, otherwise this isn't needed)
+static void ImImpl_ImeSetInputScreenPosFn(int x, int y)
+{
+	HWND hwnd = glfwGetWin32Window(window);
+	if (HIMC himc = ImmGetContext(hwnd))
+	{
+		COMPOSITIONFORM cf;
+		cf.ptCurrentPos.x = x;
+		cf.ptCurrentPos.y = y;
+		cf.dwStyle = CFS_FORCE_POSITION;
+		ImmSetCompositionWindow(himc, &cf);
+	}
+}
+
+
+#endif
 void InitImGui()
 {
     int w, h;
@@ -145,81 +173,7 @@ void UpdateImGui()
     ImGui::NewFrame();
 }
 
-
-
-
-extern glm::mat4  P, MV;
 extern GLSLShader textureShader;
-
-static ImVec4 ImConvertU32ToColorFloat4(const ImU32& color)
-{
-    ImVec4 out;
-
-    out.x = (color & 0xFF000000) >> 24 ;
-    out.y = (color & 0x00FF0000) >> 16 ;
-    out.z = (color & 0x0000FF00) >> 8 ;
-    out.w = color & 0x000000FF;
-
-    out.x /= 255.0;
-    out.y /= 255.0;
-    out.z /= 255.0;
-    out.w /= 255.0;
-    return out;
-}
-
-void ImImpl_LoadDrawingData(ImDrawList** const cmd_lists, int cmd_lists_count) {
-
-
-    const float width = ImGui::GetIO().DisplaySize.x;
-    const float height = ImGui::GetIO().DisplaySize.y;
-
-    ImVector<ImDrawVert> fullVec;
-    std::vector<GLfloat> colors;
-    int total = 0;
-    for (int n = 0; n < cmd_lists_count; n++) {
-        const ImDrawList *cmd_list = cmd_lists[n];
-        const ImDrawCmd* pcmd_end = cmd_list->commands.end();
-        for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end; pcmd++)
-        {
-
-            for(int i = 0; i < pcmd->vtx_count; ++i) {
-                fullVec.push_back(cmd_list->vtx_buffer[i]);
-                ImVec4 c = ImConvertU32ToColorFloat4(cmd_list->vtx_buffer[i].col);
-                colors.push_back(c.w);
-                colors.push_back(c.z);
-                colors.push_back(c.y);
-                colors.push_back(c.x);
-            }
-            total += pcmd->vtx_count;
-        }
-    }
-    const unsigned char* vtx_buffer = (const unsigned char*)fullVec.begin();
-
-    imgui_vernumber = fullVec.size();
-    glBindVertexArray(imgui_vaoID);
-
-//    glBindBuffer (GL_ARRAY_BUFFER, imgui_vboVerticesID);
-//    glBufferData (GL_ARRAY_BUFFER,fullVec.size() * sizeof(ImDrawVert), vtx_buffer, GL_DYNAMIC_DRAW);
-//    glEnableVertexAttribArray(textureShader["vVertex"]);
-//    glVertexAttribPointer(textureShader["vVertex"], 2, GL_FLOAT, GL_FALSE,sizeof(ImDrawVert),0);
-//
-//
-//    glBindBuffer (GL_ARRAY_BUFFER, vboTexCoordID);
-//    glBufferData (GL_ARRAY_BUFFER, fullVec.size() * sizeof(ImDrawVert), vtx_buffer, GL_DYNAMIC_DRAW);
-//
-//    glEnableVertexAttribArray(textureShader["vUV"]);
-//    glVertexAttribPointer (textureShader["vUV"], 2, GL_FLOAT, GL_FALSE,sizeof(ImDrawVert), (GLvoid*) (offsetof(ImDrawVert, uv)));
-
-    glBindBuffer (GL_ARRAY_BUFFER, imgui_vboColorID);
-    glBufferData (GL_ARRAY_BUFFER, colors.size() * sizeof(GLfloat), &colors[0], GL_DYNAMIC_DRAW);
-    glEnableVertexAttribArray(textureShader["vColor"]);
-    glVertexAttribPointer(textureShader["vColor"], 4, GL_FLOAT, GL_FALSE,4 * sizeof(GLfloat),  0);
-
-    return;
-
-
-
-}
 
 void RenderDrawingLists(ImDrawList** const cmd_lists, int cmd_lists_count) {
     glEnable(GL_BLEND);
@@ -228,9 +182,6 @@ void RenderDrawingLists(ImDrawList** const cmd_lists, int cmd_lists_count) {
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_SCISSOR_TEST);
-//    glEnableClientState(GL_VERTEX_ARRAY);
-//    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-//    glEnableClientState(GL_COLOR_ARRAY);
 
     textureShader.Use();
     //pass the shader uniform
@@ -242,8 +193,8 @@ void RenderDrawingLists(ImDrawList** const cmd_lists, int cmd_lists_count) {
 //    glm::mat4 Ry	= glm::rotate(Rx, rotation_y, glm::vec3(0.0f, 1.0f, 0.0f));
 //    glm::mat4 MV	= glm::rotate(Ry, rotation_z, glm::vec3(0.0f, 0.0f, 1.0f));
 //
-    MV = glm::mat4(1);
-    P = glm::ortho(0.0f, width, height, 0.0f, -1.0f, +1.0f);
+    glm::mat4 MV = glm::mat4(1);
+    glm::mat4 P = glm::ortho(0.0f, width, height, 0.0f, -1.0f, +1.0f);
     //P = glm::perspective(0.0f, (float)width / (float)height, -1.0f, 1.0f);
     glUniformMatrix4fv(textureShader("MVP"), 1, GL_FALSE, glm::value_ptr(P*MV));
 //    //draw triangle
@@ -292,13 +243,6 @@ void RenderDrawingLists(ImDrawList** const cmd_lists, int cmd_lists_count) {
     }
 
 
-
-
-
-
-
-
-
     glBindVertexArray(0); //unbind
 
     textureShader.UnUse();
@@ -332,43 +276,8 @@ void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count)
 
 //   ImImpl_LoadDrawingData(cmd_lists, cmd_lists_count);
     RenderDrawingLists(cmd_lists, cmd_lists_count);
-
-
-    // Setup orthographic projection matrix
-//    const float width = ImGui::GetIO().DisplaySize.x;
-//    const float height = ImGui::GetIO().DisplaySize.y;
-//    glMatrixMode(GL_PROJECTION);
-//    glLoadIdentity();
-//    glOrtho(0.0f, width, height, 0.0f, -1.0f, +1.0f);
-//    glMatrixMode(GL_MODELVIEW);
-//    glLoadIdentity();
-//
-////
-////
-//    // Render command lists
-//      for (int n = 0; n < cmd_lists_count; n++)
-//    {
-//        const ImDrawList* cmd_list = cmd_lists[n];
-//        const unsigned char* vtx_buffer = (const unsigned char*)cmd_list->vtx_buffer.begin();
-//        glVertexPointer(2, GL_FLOAT, sizeof(ImDrawVert), (void*)(vtx_buffer));
-//        glTexCoordPointer(2, GL_FLOAT, sizeof(ImDrawVert), (void*)(vtx_buffer+8));
-//        //glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(ImDrawVert), (void*)(vtx_buffer+16));
-//
-//        int vtx_offset = 0;
-//        const ImDrawCmd* pcmd_end = cmd_list->commands.end();
-//        for (const ImDrawCmd* pcmd = cmd_list->commands.begin(); pcmd != pcmd_end; pcmd++)
-//        {
-            //glScissor((int)pcmd->clip_rect.x, (int)(height - pcmd->clip_rect.w), (int)(pcmd->clip_rect.z - pcmd->clip_rect.x), (int)(pcmd->clip_rect.w - pcmd->clip_rect.y));
-//            glDrawArrays(GL_TRIANGLES, vtx_offset, pcmd->vtx_count);
-//            vtx_offset += pcmd->vtx_count;
-//        }
-//
-//    }
-
     glDisable(GL_SCISSOR_TEST);
-//    glDisableClientState(GL_COLOR_ARRAY);
-//    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-//    glDisableClientState(GL_VERTEX_ARRAY);
+
 }
 
 

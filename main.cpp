@@ -4,8 +4,6 @@
 #include "imgui_stuff.h"
 #include "imgui/imgui.h"
 
-
-
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -17,13 +15,13 @@
 #include "kdtree/kdtree.h"
 #include "growing/growing.h"
 
+#include "GUI.h"
 
+#include "ActionWindow.h"
 
-GLFWwindow *window;
-
+GLFWwindow *window = nullptr;
+ActionWindow *actWindow = nullptr;
 RegionGrowing *regionGrowing = nullptr;
-
-
 
 extern bool mousePressed[2];
 //projection and modelview matrices
@@ -37,7 +35,7 @@ struct kdtree* ptree = nullptr;
 struct kdres *presults;
 
 Face *pickingFace = nullptr;
-
+ProgStatus progStatus = PS_NORMAL;
 GLSLShader colorShader, textureShader, wireframeShader;
 
 void barycentric(Face *f, const Point& point, float  (&lambda)[3]) {
@@ -57,7 +55,6 @@ void barycentric(Face *f, const Point& point, float  (&lambda)[3]) {
     lambda[1] = ((y3-y1)*(x-x3) + (x1-x3)*(y-y3)) / dimo;
     lambda[2] = 1.0 - lambda[0] - lambda[1];
 
-    std::cout << lambda[0] << " " << lambda[1] << " " << lambda[2] << std::endl;
 }
 
 
@@ -85,7 +82,7 @@ Face *locate(Vertex *vertex, const Point& point) {
 
 static bool isPicking = false;
 static float translate_x = 0, translate_y = 0;
-static bool action_window = false;
+
 static void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
     const float window_width = ImGui::GetIO().DisplaySize.x;
@@ -97,40 +94,67 @@ static void glfw_mouse_button_callback(GLFWwindow* window, int button, int actio
         mousePressed[button] = true;
 
 
-    if (action_window) {
+    if (actWindow->isShown()) {
         return;
     }
     double xpos = 0, ypos = 0;
     glfwGetCursorPos(window, &xpos, &ypos);
 
-    if(isPicking && !ImGui::IsMouseHoveringAnyWindow() && button==GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    if(progStatus == PS_PICKING_SEED && !ImGui::IsMouseHoveringAnyWindow() && button==GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        //TODO: prevent pickingFace multi-entry
+        //TODO: remove pickingFace if getting wrong
+        if (pickingFace) {
+            pickingFace->setColor(ColorManager::COLOR_PATCH_CENTER_FACE);
+			pickingFace->lock();
+            regionGrowing->initPatches(pickingFace);
+            pickingFace = nullptr;
+        }
+
+    }
+}
+
+static void glfw_mouse_move_callback(GLFWwindow* window, double xpos, double ypos) {
+    if (actWindow->isShown()) {
+        return;
+    }
+    const float window_width = ImGui::GetIO().DisplaySize.x;
+
+    const float window_height = ImGui::GetIO().DisplaySize.y;
+
+
+    if(progStatus == PS_PICKING_SEED && !ImGui::IsMouseHoveringAnyWindow())
     {
 
         double xx, yy;
 
-
         xx = -(window_width/window_height * diameter) + xpos/window_width * 2 * (window_width / window_height * diameter);
         yy = ( diameter) - ypos/window_height * 2 * diameter;
 
-        std::cout << "xx, yy" << xx + center.x << " " << yy  + center.y << "\n";
-        double pos[3] = {xx + center.x, yy  + center.y, 0};
+//        std::cout << "xx, yy" << xx + center.x + translate_x<< " " << yy  + center.y + translate_y<< "\n";
+        double pos[3] = {xx + center.x - translate_x, yy  + center.y - translate_y, 0};
         presults = kd_nearest(ptree, pos);
 
+		if (!presults) {
+			return;
+		}
         Vertex *v = (Vertex*)kd_res_item( presults, pos );
-        std::cout << "Vertex: " << v->index() << "\n";
 
         //Point Location
+        Face *prevPickingFace = pickingFace;
         pickingFace = locate(v, Point(xx + center.x,  yy  + center.y, 0));
-        if (pickingFace) {
-            pickingFace->color = Point(0, 1, 0);
-            std::cout << "face: " << pickingFace->index() << std::endl;
+        if (pickingFace != prevPickingFace) {
+            if (pickingFace) {
+                pickingFace->setColor(ColorManager::COLOR_PICKED_FACE);
+            }
+            if (prevPickingFace) {
+                prevPickingFace->setColor(ColorManager::COLOR_NORMAL_FACE);
+            }
+		
         }
     }
 
-
-
 }
-
 
 static void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
@@ -138,7 +162,7 @@ static void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoff
     io.MouseWheel = (yoffset != 0.0f) ? yoffset > 0.0f ? 1 : - 1 : 0;           // Mouse wheel: -1,0,+1
 
 
-    if (action_window) {
+    if (actWindow->isShown()) {
         return;
     }
 
@@ -169,7 +193,7 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
     io.KeyShift = (mods & GLFW_MOD_SHIFT) != 0;
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        action_window = !action_window;
+        actWindow->setShow(!actWindow->isShown());
     }
 
     if (ImGui::IsMouseHoveringAnyWindow()) {
@@ -177,7 +201,7 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
     }
 
 
-    if (action_window) {
+    if (actWindow->isShown()) {
         return;
     }
 
@@ -214,7 +238,10 @@ void constructKDTree(Mesh *mesh) {
     /* add some random nodes to the tree (assert nodes are successfully inserted) */
     for(MeshVertexIterator mvit(mesh); !mvit.end(); ++mvit) {
         Vertex *v = *mvit;
-        assert( 0 == kd_insert3( ptree, v->point()[0], v->point()[1], v->point()[2], v ) );
+        if ( 0 != kd_insert3( ptree, v->point()[0], v->point()[1], v->point()[2], v ) ) {
+			std::cout << "kdtree fail!\n";
+			exit(-1);
+		}
     }
 }
 
@@ -244,11 +271,11 @@ static void prepareMeshData(Mesh *mesh) {
 
     for (MeshFaceIterator mfit(mesh); !mfit.end(); ++mfit) {
         Face *f = *mfit;
-        f->color = Point(0, 0.4f, 0.7f);
+        f->setColor(ColorManager::COLOR_NORMAL_FACE);
         for (FaceVertexIterator fvit(f); !fvit.end(); ++fvit) {
-//            indices.push_back((*fvit)->index());
+			
             pos.push_back(glm::vec2((*fvit)->point()[0], (*fvit)->point()[1]));
-            colors.push_back(glm::vec4(f->color[0], f->color[1], f->color[2], 1.0f));
+            colors.push_back(glm::vec4(ColorManager::COLOR_NORMAL_FACE[0], ColorManager::COLOR_NORMAL_FACE[1], ColorManager::COLOR_NORMAL_FACE[2], 1.0f));
         }
     }
     triangle_num = pos.size();
@@ -410,12 +437,10 @@ int main(int argc, char *argv[]) {
     if (!glfwInit())
         exit(EXIT_FAILURE);
 
-
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
 
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 
@@ -432,6 +457,7 @@ int main(int argc, char *argv[]) {
     glfwMakeContextCurrent(window);
     glfwSetKeyCallback(window, glfw_key_callback);
     glfwSetMouseButtonCallback(window, glfw_mouse_button_callback);
+    glfwSetCursorPosCallback(window, glfw_mouse_move_callback);
     glfwSetScrollCallback(window, glfw_scroll_callback);
     glfwSetCharCallback(window, glfw_char_callback);
 
@@ -446,14 +472,13 @@ int main(int argc, char *argv[]) {
     }
     err = glGetError(); //this is to ignore INVALID ENUM error 1282
 
-
-
     initShader();
     prepareMeshData(mesh);
     constructKDTree(mesh);
 
     InitImGui();
 
+    actWindow = new ActionWindow(window);
 
     const float window_width = ImGui::GetIO().DisplaySize.x;
 
@@ -472,16 +497,7 @@ int main(int argc, char *argv[]) {
         static bool show_test_window = false;
         static bool show_another_window = false;
 
-        // 1. Show a simple window
-        // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-        if(0) {
-            static float f;
-            ImGui::Text("Hello, world!");
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-            show_test_window ^= ImGui::Button("Test Window");
-//            show_another_window ^= ImGui::Button("Another Window");
-            ImGui::Checkbox("Picking", &isPicking);
-        }
+  
 
         // 2. Show another simple window, this time using an explicit Begin/End pair
         if (0 && show_another_window)
@@ -492,51 +508,36 @@ int main(int argc, char *argv[]) {
         }
 
         // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-        if ( show_test_window)
+        if ( 0 && show_test_window)
         {
             ImGui::SetNewWindowDefaultPos(ImVec2(650, 20));        // Normally user code doesn't need/want to call this, because positions are saved in .ini file. Here we just want to make the demo initial state a bit more friendly!
             ImGui::ShowTestWindow(&show_test_window);
         }
 
-        {
-            if (action_window) {
-                static bool no_titlebar = false;
-                static bool no_border = true;
-                static bool no_resize = false;
-                static bool no_move = false;
-                static bool no_scrollbar = false;
-                static float fill_alpha = 0.65f;
-                ImGuiStyle& style = ImGui::GetStyle();
-                style.ScrollBarWidth = 25.0f;
-                const ImGuiWindowFlags layout_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar  | ImGuiWindowFlags_NoMove
-                | ImGuiWindowFlags_NoResize;
-                ImGui::Begin("Action Window", &action_window, ImVec2(window_width / 3,200), fill_alpha, layout_flags);
-                ImGui::SetWindowPos(ImVec2(window_width / 3 , window_height /2 - 100));
-                static ImGuiTextFilter filter;
-                ImGui::SetKeyboardFocusHere();
-                filter.Draw("",ImGui::GetWindowWidth());
-                const char* lines[] = { "Seed Picking:     Off", "bbb1.c", "ccc1.c", "aaa2.cpp", "bbb2.cpp", "ccc2.cpp", "abc.h", "hello, world" };
-                ImGui::BeginChild("",ImVec2(ImGui::GetWindowWidth(),200));
-                for (size_t i = 0; i < 8; i++) {
-                    if (filter.PassFilter(lines[i])) {
-                         if (button_pressed[i] = ImGui::Button(lines[i], ImVec2(ImGui::GetWindowWidth()-10,20))) {
-                            action_window = false;
-                         }
-                    }
-                }
-                style.ScrollBarWidth = 16.0f;
+		//here is the mode window..
+		if (0) {
+			
+			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.7, 0.7, 0.7, 0));
+			const ImGuiWindowFlags layout_flags 
+				= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar  | ImGuiWindowFlags_NoMove	| ImGuiWindowFlags_NoResize;
 
-               // ImGui::SetScrollPosHere();
-                ImGui::EndChild();
-                ImGui::End();
+			ImGui::Begin("Mode", nullptr, ImVec2(200,20), 0.6, layout_flags);
+			
+			ImGui::SetWindowPos(ImVec2(0, 0));
+			ImGui::TextColored(ImVec4(1, 0, 0, 1),MODE_STR[progStatus]);
+			ImGui::End();
+			ImGui::PopStyleColor();
+		}
+
+        {
+            if (actWindow->isShown()) {
+               actWindow->render();
             }
         }
-
 
         if (button_pressed[0]) {
             regionGrowing->grow();
         }
-
 
         // Rendering
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
@@ -548,7 +549,8 @@ int main(int argc, char *argv[]) {
         for (MeshFaceIterator mfit(mesh); !mfit.end(); ++mfit) {
             Face *f = *mfit;
             for (FaceVertexIterator fvit(f); !fvit.end(); ++fvit) {
-                 colors.push_back(glm::vec4(f->color[0], f->color[1], f->color[2], 1.0f));
+				Point fcol = f->getColor();
+                 colors.push_back(glm::vec4(fcol[0], fcol[1], fcol[2], 1.0f));
             }
         }
 
@@ -559,7 +561,21 @@ int main(int argc, char *argv[]) {
 
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         OnRender();
+        if (progStatus == PS_PICKING_SEED) {
+            char buf[128];
+
+
+            if (pickingFace) {
+                ImGui::SetTooltip("Face %d", pickingFace->index());
+            } else {
+                ImGui::SetTooltip("     Picking    ");
+            }
+
+        }
+
         ImGui::Render();
+
+
         glfwSwapBuffers(window);
     }
 
@@ -574,7 +590,7 @@ int main(int argc, char *argv[]) {
     ImGui::Shutdown();
     glfwDestroyWindow(window);
     glfwTerminate();
-
+    delete actWindow;
     delete mesh;
     exit(EXIT_SUCCESS);
 }

@@ -7,7 +7,7 @@ class Halfedge;
 class Face
 {
 public:
-	Face(){ m_halfedge = NULL; m_propertyIndex=-1;}
+	Face(){ m_halfedge = NULL; m_propertyIndex=-1; m_islocked = false;}
 	~Face(){;}
 
 	//Pointers for Halfedge Data Structure
@@ -16,7 +16,15 @@ public:
 	//optional
 	int				& index() {return m_propertyIndex; }
 	std::string		& PropertyStr() { return m_propertyStr;}
-    Point             color;
+    
+	void setColor(const Point& color) {
+		if (!m_islocked) {
+			m_color = color;
+		}
+	}
+    const Point& getColor() const { return m_color;}
+	void lock() { m_islocked = true; }
+	void unlock() { m_islocked = false; }
 
 protected:
 	//for Halfedge Data Structure
@@ -25,6 +33,8 @@ protected:
 	//optional	
 	std::string		m_propertyStr;
 	int				m_propertyIndex; // index to Property array
+    Point             m_color;
+    bool			m_islocked;
 };
 
 
