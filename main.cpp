@@ -18,6 +18,7 @@
 #include "GUI.h"
 
 #include "ActionWindow.h"
+#include "ShaderManager.h"
 
 GLFWwindow *window = nullptr;
 ActionWindow *actWindow = nullptr;
@@ -36,7 +37,6 @@ struct kdres *presults;
 
 Face *pickingFace = nullptr;
 ProgStatus progStatus = PS_NORMAL;
-GLSLShader colorShader, textureShader, wireframeShader;
 
 void barycentric(Face *f, const Point& point, float  (&lambda)[3]) {
      Point points [3] ;
@@ -247,6 +247,10 @@ void constructKDTree(Mesh *mesh) {
 
 
 static void prepareMeshData(Mesh *mesh) {
+	GLSLShader colorShader = ShaderManager::getShader("Color");
+	//GLSLShader wireframeShader = ShaderManager::getShader("WireFrame");
+
+
     std::vector<glm::vec2> pos;
     std::vector<int> indices;
     std::vector<glm::vec4> colors;
@@ -307,6 +311,8 @@ static void prepareMeshData(Mesh *mesh) {
 
 
 void OnRender() {
+	GLSLShader colorShader = ShaderManager::getShader("Color");
+	GLSLShader wireframeShader = ShaderManager::getShader("WireFrame");
 
     glEnable(GL_BLEND);
 
@@ -352,61 +358,8 @@ void OnRender() {
 
 
 
-void initShader() {
-    colorShader.LoadFromFile(GL_VERTEX_SHADER, "shaders/colorshader.vert");
-    colorShader.LoadFromFile(GL_FRAGMENT_SHADER, "shaders/colorshader.frag");
-
-    //compile and link shader
-    colorShader.CreateAndLinkProgram();
-    colorShader.Use();
-    //add attributes and uniforms
-    colorShader.AddAttribute("vVertex");
-    colorShader.AddAttribute("vColor");
-    colorShader.AddAttribute("vUV");
-    colorShader.AddUniform("MVP");
-    colorShader.AddUniform("textureMap");
-    glUniform1i(colorShader("textureMap"),0);
-    colorShader.UnUse();
-
-
-
-    textureShader.LoadFromFile(GL_VERTEX_SHADER, "shaders/textureshader.vert");
-    textureShader.LoadFromFile(GL_FRAGMENT_SHADER, "shaders/textureshader.frag");
-
-    //compile and link shader
-    textureShader.CreateAndLinkProgram();
-    textureShader.Use();
-    //add attributes and uniforms
-    textureShader.AddAttribute("vVertex");
-    textureShader.AddAttribute("vColor");
-    textureShader.AddAttribute("vUV");
-    textureShader.AddUniform("MVP");
-    textureShader.AddUniform("textureMap");
-    glUniform1i(textureShader("textureMap"),0);
-    textureShader.UnUse();
-
-    wireframeShader.LoadFromFile(GL_VERTEX_SHADER, "shaders/wireframeshader.vert");
-    wireframeShader.LoadFromFile(GL_GEOMETRY_SHADER, "shaders/wireframeshader.geom");
-    wireframeShader.LoadFromFile(GL_FRAGMENT_SHADER, "shaders/wireframeshader.frag");
-
-    //compile and link shader
-    wireframeShader.CreateAndLinkProgram();
-    wireframeShader.Use();
-    //add attributes and uniforms
-    wireframeShader.AddAttribute("vVertex");
-    wireframeShader.AddAttribute("vColor");
-    wireframeShader.AddAttribute("vUV");
-    wireframeShader.AddUniform("MVP");
-    wireframeShader.AddUniform("textureMap");
-    glUniform1i(wireframeShader("textureMap"),0);
-    wireframeShader.UnUse();
-
-}
-
 static void OnShutdown() {
-    //Destroy shader
-    colorShader.DeleteShaderProgram();
-    textureShader.DeleteShaderProgram();
+	ShaderManager::terminate();
     //Destroy vao and vbo
     glDeleteBuffers(1, &vboVerticesID);
     glDeleteVertexArrays(1, &vaoID);
@@ -472,7 +425,7 @@ int main(int argc, char *argv[]) {
     }
     err = glGetError(); //this is to ignore INVALID ENUM error 1282
 
-    initShader();
+    ShaderManager::init();
     prepareMeshData(mesh);
     constructKDTree(mesh);
 
@@ -484,6 +437,7 @@ int main(int argc, char *argv[]) {
 
     const float window_height = ImGui::GetIO().DisplaySize.y;
 
+	GLSLShader colorShader = ShaderManager::getShader("Color");
     while (!glfwWindowShouldClose(window))
     {
 

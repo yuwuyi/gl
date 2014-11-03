@@ -10,6 +10,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "ShaderManager.h"
 
 #include <iostream>
 #include <fstream>
@@ -173,9 +174,11 @@ void UpdateImGui()
     ImGui::NewFrame();
 }
 
-extern GLSLShader textureShader;
+
 
 void RenderDrawingLists(ImDrawList** const cmd_lists, int cmd_lists_count) {
+	GLSLShader textureShader = ShaderManager::getShader("Texture");
+
     glEnable(GL_BLEND);
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

@@ -42,10 +42,11 @@ set(KDTREE_SRC ${KDTREE_DIR}/kdtree.h ${KDTREE_DIR}/kdtree.c)
 set(GROWING_DIR "growing")
 set(GROWING_SRC ${GROWING_DIR}/growing.h ${GROWING_DIR}/growing.cpp)
 
-set(SOURCE_FILES main.cpp  GLSLShader.cpp GLSLShader.h glew/src/glew.c GUI.h GUI.cpp imgui_stuff.h imgui_stuff.cpp ActionWindow.cpp ActionWindow.h
+set(SOURCE_FILES main.cpp  GLSLShader.cpp GLSLShader.h glew/src/glew.c GUI.h GUI.cpp imgui_stuff.h imgui_stuff.cpp ActionWindow.cpp ActionWindow.h 
+	ShaderManager.h ShaderManager.cpp
     ${SHADERS_SRC} ${IMGUI_SRC} ${MESHLIB_SRC} ${KDTREE_SRC} ${GROWING_SRC})
 
 add_executable(gl ${SOURCE_FILES})
 
 target_link_libraries(gl glfw ${GLFW_LIBRARIES})
-target_link_libraries(gl glfw ${OPENGL_LIBRARY} ${GLFW_LIBRARIES})
+target_link_libraries(gl glfw ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} imm32.lib)
