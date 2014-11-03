@@ -1,3 +1,6 @@
+# build
+build
+
 # idea
 .idea
 
@@ -72,3 +75,4 @@ $RECYCLE.BIN/
 *.msi
 *.msm
 *.msp
+*.rule
