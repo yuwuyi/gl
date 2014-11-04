@@ -7,7 +7,6 @@
 #include "growing/growing.h"
 
 extern bool mousePressed[2];
-static GLFWwindow *window;
 extern ProgStatus progStatus;
 extern Face *pickingFace;
 extern RegionGrowing *regionGrowing;
@@ -15,7 +14,6 @@ extern RegionGrowing *regionGrowing;
 ActionWindow::ActionWindow(GLFWwindow *window)
 : m_parent(window), m_show(false)
 {
-	window = GUI::getWindow()
     buildActions();
 }
 
@@ -76,7 +74,7 @@ static void act_pickseeds_cb(void *) {
 }
 
 static void act_quit_cb(void *) {
-    glfwSetWindowShouldClose(window, true);
+//    glfwSetWindowShouldClose(window, true);
 }
 
 static void act_genseeds_cb(void *) {
