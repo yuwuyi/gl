@@ -1,5 +1,7 @@
 #ifndef GUI_H_
 #define GUI_H_
+#include "GL/glew.h"
+#include "GLFW/glfw3.h"
 
 #include "MeshLib_Core/Point.h"
 
@@ -20,6 +22,12 @@ struct ColorManager {
 
 
 class GUI {
+public:
+	static void init();
+	static void terminate();
+	static GLFWwindow* getWindow();
+private:
+	static GLFWwindow *window;
 
 };
 

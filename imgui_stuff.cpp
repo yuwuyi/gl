@@ -11,6 +11,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "ShaderManager.h"
+#include "GUI.h"
 
 #include <iostream>
 #include <fstream>
@@ -30,7 +31,7 @@
 #include <GLFW/glfw3native.h>
 #endif
 
-extern GLFWwindow *window;
+static GLFWwindow *window;
 
 
 static GLuint fontTex;
@@ -39,7 +40,7 @@ static ImVec2 mousePosScale(1.0f, 1.0f);
 GLuint imgui_vaoID;
 GLuint imgui_vboVerticesID;
 GLuint imgui_vboColorID;
-
+ 
 GLuint imgui_vernumber;
 GLuint vboTexCoordID;
 
@@ -72,6 +73,7 @@ static void ImImpl_ImeSetInputScreenPosFn(int x, int y)
 #endif
 void InitImGui()
 {
+	window = GUI::getWindow();
     int w, h;
     int fb_w, fb_h;
     glfwGetWindowSize(window, &w, &h);
