@@ -23,7 +23,7 @@ static void barycentric(Face *f, const Point& point, float  (&lambda)[3]) {
 	lambda[2] = 1.0 - lambda[0] - lambda[1];
 }
 
-MeshData::MeshData(Mesh *mesh) : m_mesh(mesh), ptree(nullptr) {
+MeshData::MeshData(Mesh *mesh) : m_mesh(mesh), ptree(nullptr), presults(nullptr) {
 
 }
 
@@ -33,11 +33,31 @@ MeshData::~MeshData() {
 	}
 
 	kd_free( ptree );
+	glDeleteBuffers(1, &vboVerticesID);
+	glDeleteBuffers(1, &vboColorID);
+	
+	glDeleteVertexArrays(1, &vaoID);
 
 	delete m_mesh;
 }
 
+void MeshData::calculateCenter() {
+    glm::vec2 minp(1e6, 1e6), maxp(-1e6, -1e6);
+    
+    for (MeshVertexIterator mvit(m_mesh); !mvit.end(); ++mvit) {
+        Vertex *v = *mvit;
+        glm::vec2 p = glm::vec2(float(v->point()[0]), float(v->point()[1]));
+        
+        if (p.x < minp.x) { minp.x = p.x;}
+        if (p.y < minp.y) { minp.y = p.y;}
+        if (p.x > maxp.x) { maxp.x = p.x;}
+        if (p.y > maxp.y) { maxp.y = p.y;}
+    }
+    
+    center = (minp + maxp) / 2.0f;
+    diameter = 2 * std::max(glm::length(minp-center), glm::length(maxp-center));
 
+}
 
 
 Face *MeshData::locate(Vertex *vertex, const Point& point) {

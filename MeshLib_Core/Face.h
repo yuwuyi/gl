@@ -1,6 +1,7 @@
 #ifndef _FACE_H_
 #define _FACE_H_
 
+#include <string>
 #include "Point.h"
 class Halfedge;
 

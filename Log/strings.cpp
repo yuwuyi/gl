@@ -21,8 +21,12 @@ char *format(const char *fmt, ...) {
 }
 
 char *vformat(const char *fmt, va_list ap) {
+#ifdef WIN32
 	va_list aq = ap;
-	
+#else
+    va_list aq;
+    va_copy(aq, ap);
+#endif
 
 	size_t sz = vsnprintf(NULL, 0, fmt, aq) + 1;
 	va_end(aq);

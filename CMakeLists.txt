@@ -43,10 +43,18 @@ set(GROWING_DIR "growing")
 set(GROWING_SRC ${GROWING_DIR}/growing.h ${GROWING_DIR}/growing.cpp)
 
 set(SOURCE_FILES main.cpp  GLSLShader.cpp GLSLShader.h glew/src/glew.c GUI.h GUI.cpp imgui_stuff.h imgui_stuff.cpp ActionWindow.cpp ActionWindow.h 
-	ShaderManager.h ShaderManager.cpp
+	ShaderManager.h ShaderManager.cpp ModeManager.h ModeManager.cpp
+	MeshData.cpp MeshData.h
+	Log/log.cpp Log/log.h Log/strings.cpp Log/strings.h
+	RendererManager.cpp RendererManager.h Renderer.cpp Renderer.h
+	ColorManager.h ColorManager.cpp
     ${SHADERS_SRC} ${IMGUI_SRC} ${MESHLIB_SRC} ${KDTREE_SRC} ${GROWING_SRC})
 
 add_executable(gl ${SOURCE_FILES})
 
 target_link_libraries(gl glfw ${GLFW_LIBRARIES})
-target_link_libraries(gl glfw ${OPENGL_LIBRARY} ${GLFW_LIBRARIES} imm32.lib)
+target_link_libraries(gl glfw ${OPENGL_LIBRARY} ${GLFW_LIBRARIES})
+
+#if ( ${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
+	target_link_libraries(gl imm32.lib)
+	#endif({MSVC})

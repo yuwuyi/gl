@@ -60,7 +60,7 @@ void ActionWindow::render() {
 }
 
 static void act_pickseeds_cb(void *) {
-    if (progStatus != PS_PICKING_SEED) {
+   /* if (progStatus != PS_PICKING_SEED) {
 		if (!regionGrowing) {
 			delete regionGrowing;
 		}
@@ -70,7 +70,7 @@ static void act_pickseeds_cb(void *) {
         progStatus = PS_NORMAL;
 		pickingFace->setColor(ColorManager::COLOR_NORMAL_FACE);
 		pickingFace = nullptr;
-	}
+	}*/
 }
 
 static void act_quit_cb(void *) {
