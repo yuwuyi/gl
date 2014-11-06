@@ -123,8 +123,6 @@ int main(int argc, char *argv[]) {
 
 		//here is the mode window..
 		if (1) {
-			
-			
 			const ImGuiWindowFlags layout_flags 
 				= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar  | ImGuiWindowFlags_NoMove	| ImGuiWindowFlags_NoResize;
 			
@@ -133,11 +131,10 @@ int main(int argc, char *argv[]) {
 			style.Colors[ImGuiCol_WindowBg].w = 0;
 
 			ImGui::Begin("Mode", nullptr, ImVec2(200,20), 0.6, layout_flags);
-			ImGui::SetWindowPos(ImVec2(0, 0));
+			ImGui::SetWindowPos(ImVec2(0, 0)); 
 			ImGui::TextColored(ImVec4(1, 1, 0, 1),"Mode:");
 			ImGui::End();
 			style.Colors[ImGuiCol_WindowBg].w = back_w;
-			
 		}
 
         {
@@ -145,7 +142,6 @@ int main(int argc, char *argv[]) {
                actWindow->render();
             }
         }
-
 
         // Rendering
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);

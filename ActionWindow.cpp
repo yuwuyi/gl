@@ -40,11 +40,10 @@ void ActionWindow::render() {
     
     filter.Draw("",ImGui::GetWindowWidth());
     ImGui::BeginChild("",ImVec2(ImGui::GetWindowWidth(),200));
-    for (size_t i = 0; i < m_actions.size(); ++i) {
+    
+	for (size_t i = 0; i < m_actions.size(); ++i) {
         Action *act = m_actions[i];
         if (filter.PassFilter(act->buildActionName().c_str())) {
-           // if (act->actStatus == IDLING || act->actStatus == PRESSED) {
-			
                 act->isSelected = ImGui::Button(act->buildActionName().c_str(), ImVec2(ImGui::GetWindowWidth()-10,20));
                 if (act->isSelected) {
                     act->transferStatus();
@@ -53,6 +52,7 @@ void ActionWindow::render() {
                 }
         }
     }
+
     style.ScrollBarWidth = 16.0f;
 
     ImGui::EndChild();

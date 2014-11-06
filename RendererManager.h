@@ -8,8 +8,11 @@ class MeshData;
 
 class RendererManager {
 public:
+	static void init();
+	static void terminate();
+
 private:
-    std::vector<Renderer*> m_renderers;
+    static std::vector<Renderer*> m_renderers;
 };
 
 
