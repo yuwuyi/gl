@@ -1,45 +1,33 @@
 #ifndef Action_h__
 #define Action_h__
 
+#include <string>
 
 
-enum ActionStatus {
-	IDLING,
-	TOGGLED_OFF,
-	TOGGLED_ON,
-	PRESSED,
+
+
+class Action {
+public:
+	Action(const std::string& name)
+		: actName(name)
+	{}
+	virtual const std::string& getName() const { return actName; }
+	virtual	void act() = 0;	
+protected:
+	std::string actName;
 };
 
 
+class PickingAction : public Action {
+public:
+	PickingAction(const std::string& name) : Action(name) {
 
-struct Action {
-	Action(const std::string name, ActionStatus as= IDLING)
-		: actName(name), actStatus(as), isSelected(false)
-	{}
+	}
+	~PickingAction() {
 
-	void transferStatus() {
-		if (actStatus == TOGGLED_OFF) {
-			actStatus = TOGGLED_ON;
-		} else if (actStatus == TOGGLED_ON) {
-			actStatus = TOGGLED_OFF;
-		} else if (actStatus == IDLING) {
-			actStatus = PRESSED;
-		}
 	}
 
-	std::string buildActionName() {
-		if (actStatus == TOGGLED_OFF) {
-			return actName + ":      OFF";
-		} else if (actStatus == TOGGLED_ON) {
-			return actName + ":      ON";
-		}
-		return actName;
-	}
-
-	void (*action_cb)(void *);
-	ActionStatus actStatus;
-	std::string actName;
-	bool isSelected;
+	void act() {}
 };
 
 #endif // Action_h__

@@ -1,10 +1,13 @@
 #include <iostream>
 #include "GUI.h"
 #include "ActionWindow.h"
-
+#include "ScenarioManager.h"
 #include "imgui/imgui.h"
 #include "MeshLib_Core/Face.h"
 #include "growing/growing.h"
+
+#include "Scenario.h"
+#include "Action.h"
 
 extern bool mousePressed[2];
 extern ProgStatus progStatus;
@@ -14,14 +17,10 @@ extern RegionGrowing *regionGrowing;
 ActionWindow::ActionWindow(GLFWwindow *window)
 : m_parent(window), m_show(false)
 {
-    buildActions();
 }
 
 ActionWindow::~ActionWindow() {
-    for (auto p : m_actions) {
-        delete p;
-    }
-    m_actions.clear();
+
 }
 
 void ActionWindow::render() {
@@ -41,17 +40,17 @@ void ActionWindow::render() {
     filter.Draw("",ImGui::GetWindowWidth());
     ImGui::BeginChild("",ImVec2(ImGui::GetWindowWidth(),200));
     
+	const std::vector<Action*>& m_actions = ScenarioManager::getCurrentScenario()->getActions();
+
 	for (size_t i = 0; i < m_actions.size(); ++i) {
-        Action *act = m_actions[i];
-        if (filter.PassFilter(act->buildActionName().c_str())) {
-                act->isSelected = ImGui::Button(act->buildActionName().c_str(), ImVec2(ImGui::GetWindowWidth()-10,20));
-                if (act->isSelected) {
-                    act->transferStatus();
-                    act->action_cb(nullptr);
-                    this->m_show = false;
-                }
-        }
-    }
+		Action *act = m_actions[i];
+		if (filter.PassFilter(act->getName().c_str())) {
+			if (ImGui::Button(act->getName().c_str(), ImVec2(ImGui::GetWindowWidth()-10,20))) {
+				act->act();
+				this->m_show = false;
+			}
+		}
+	}		
 
     style.ScrollBarWidth = 16.0f;
 
@@ -83,22 +82,4 @@ static void act_genseeds_cb(void *) {
 
 static void act_regiongrowing_cb(void*) {
 	
-}
-
-void ActionWindow::buildActions() {
-    Action *actGenSeeds = new Action("Generate Seeds");
-    actGenSeeds->action_cb = act_genseeds_cb;
-    m_actions.push_back(actGenSeeds);
-
-    Action *actPickSeeds = new Action("Picking Seeds", TOGGLED_OFF);
-    actPickSeeds->action_cb = act_pickseeds_cb;
-    m_actions.push_back(actPickSeeds);
-
-	Action *actRegionGrowing = new Action("Region Growing", TOGGLED_OFF);
-	actRegionGrowing->action_cb = act_regiongrowing_cb;
-	m_actions.push_back(actRegionGrowing);
-
-    Action *actQuit = new Action("Quit");
-    actQuit->action_cb = act_quit_cb;
-    m_actions.push_back(actQuit);
 }

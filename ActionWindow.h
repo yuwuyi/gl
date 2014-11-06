@@ -12,7 +12,6 @@ public:
     ActionWindow(GLFWwindow *parent);
     ~ActionWindow();
     void render();
-    void buildActions();
 
 public:
     bool isShown() const {
@@ -26,7 +25,6 @@ public:
 private:
     GLFWwindow *m_parent;
     bool m_show;
-    std::vector<Action*> m_actions;
 };
 
 #endif

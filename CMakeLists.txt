@@ -48,6 +48,7 @@ set(SOURCE_FILES main.cpp  GLSLShader.cpp GLSLShader.h glew/src/glew.c GUI.h GUI
 	Log/log.cpp Log/log.h Log/strings.cpp Log/strings.h
 	RendererManager.cpp RendererManager.h Renderer.cpp Renderer.h
 	ColorManager.h ColorManager.cpp
+	Scenario.h Scenario.cpp ScenarioManager.h ScenarioManager.cpp
 	Action.cpp Action.h
     ${SHADERS_SRC} ${IMGUI_SRC} ${MESHLIB_SRC} ${KDTREE_SRC} ${GROWING_SRC})
 
