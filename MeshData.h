@@ -18,6 +18,7 @@ public:
 	Mesh *getMesh() { return m_mesh; }
 	void buildKDTree();
 	Face *locate(Vertex *vertex, const Point& point);
+    Face *locate(double pos[3]);
     void calculateCenter();
 	GLuint vaoID, vboColorID;
 	GLuint vboVerticesID;
@@ -25,6 +26,7 @@ public:
 	float getDiameter() const { return diameter; }
 	const glm::vec2& getCenter() const { return center; }
 
+    
 private:
 	Mesh *m_mesh;
 	struct kdtree* ptree;

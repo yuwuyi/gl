@@ -9,7 +9,7 @@ void ScenarioManager::init() {
 	m_scenarios["Normal"] = new NormalScenario;
 	m_scenarios["Pick"] = new PickScenario;
     
-    m_currentScenario = m_scenarios["Normal"];
+    m_currentScenario = m_scenarios["Pick"];
 }
 
 void ScenarioManager::terminate() {

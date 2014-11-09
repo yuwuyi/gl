@@ -13,6 +13,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
+#include "Scenario.h"
+#include "ScenarioManager.h"
 
 
 #include <iostream>
@@ -73,34 +75,8 @@ static void glfw_mouse_move_callback(GLFWwindow* window, double xpos, double ypo
 	if (actWindow->isShown()) {
 		return;
 	}
-	//if(progStatus == PS_PICKING_SEED && !ImGui::IsMouseHoveringAnyWindow())
-	//{
-	//	double xx, yy;
 
-	//	xx = -(window_width/window_height * diameter) + xpos/window_width * 2 * (window_width / window_height * diameter);
-	//	yy = ( diameter) - ypos/window_height * 2 * diameter;
-
-	//	double pos[3] = {xx + center.x - translate_x, yy  + center.y - translate_y, 0};
-	//	presults = kd_nearest(ptree, pos);
-
-	//	if (!presults) {
-	//		return;
-	//	}
-	//	Vertex *v = (Vertex*)kd_res_item( presults, pos );
-
-	//	//Point Location
-	//	Face *prevPickingFace = pickingFace;
-	//	pickingFace = locate(v, Point(xx + center.x,  yy  + center.y, 0));
-	//	if (pickingFace != prevPickingFace) {
-	//		if (pickingFace) {
-	//			pickingFace->setColor(ColorManager::COLOR_PICKED_FACE);
-	//		}
-	//		if (prevPickingFace) {
-	//			prevPickingFace->setColor(ColorManager::COLOR_NORMAL_FACE);
-	//		}
-
-	//	}
-	//}
+    ScenarioManager::getCurrentScenario()->mouseMoveEvent(window, xpos, ypos);
 
 }
 

@@ -19,6 +19,7 @@
 #include "ShaderManager.h"
 #include "RendererManager.h"
 #include "ScenarioManager.h"
+#include "MeshDataManager.h"
 
 ActionWindow *actWindow = nullptr;
 RegionGrowing *regionGrowing = nullptr;
@@ -61,6 +62,9 @@ int main(int argc, char *argv[]) {
 	MeshRenderer *meshRenderer = new MeshRenderer();
 	meshRenderer->loadData(meshData);
 
+    MeshDataManager::addMeshData(meshData);
+    MeshDataManager::setCurrent(meshData);
+    
     RendererManager::addRenderer(meshRenderer);
     
     

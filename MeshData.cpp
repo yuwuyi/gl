@@ -4,6 +4,8 @@
 #include "MeshLib_Core/Iterators.h"
 
 #include "Log/log.h"
+#include "kdtree/kdtree.h"
+
 
 static void barycentric(Face *f, const Point& point, float  (&lambda)[3]) {
 	Point points [3] ;
@@ -80,6 +82,18 @@ Face *MeshData::locate(Vertex *vertex, const Point& point) {
 	return inFace;
 }
 
+
+Face *MeshData::locate(double pos[3]) {
+    presults = kd_nearest(ptree, pos);
+    
+    if (!presults) {
+        return nullptr;
+    }
+    
+    Vertex *v = (Vertex*)kd_res_item( presults, pos );
+    return locate(v, Point(pos[0], pos[1], pos[2]));
+
+}
 
 void MeshData::buildKDTree() {
 	ptree = kd_create( 3 );

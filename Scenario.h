@@ -8,6 +8,7 @@
 
 class Action;
 class Renderer;
+class Face;
 
 class Scenario {
 public:
@@ -19,7 +20,7 @@ public:
 	}
 
     virtual void mousePressEvent() {}
-    virtual void mouseMoveEvent(GLFWwindow* window, int button, int action, int mods) {}
+    virtual void mouseMoveEvent(GLFWwindow* window, double xpos, double ypos) {}
 protected:
 	std::vector<Action*> m_actions;
     Renderer *m_renderer;
@@ -45,7 +46,9 @@ public:
 	virtual void render();
     
     virtual void mousePressEvent();
-    virtual void mouseMoveEvent(GLFWwindow* window, int button, int action, int mods);
+    virtual void mouseMoveEvent(GLFWwindow* window, double xpos, double ypos);
+private:
+    Face * pickingFace, *prevPickingFace;
 };
 
 

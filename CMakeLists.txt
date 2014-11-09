@@ -50,6 +50,7 @@ set(SOURCE_FILES main.cpp  GLSLShader.cpp GLSLShader.h glew/src/glew.c GUI.h GUI
 	ColorManager.h ColorManager.cpp
 	Scenario.h Scenario.cpp ScenarioManager.h ScenarioManager.cpp
 	Action.cpp Action.h
+	MeshDataManager.cpp MeshDataManager.h
     ${SHADERS_SRC} ${IMGUI_SRC} ${MESHLIB_SRC} ${KDTREE_SRC} ${GROWING_SRC})
 
 add_executable(gl ${SOURCE_FILES})
@@ -57,6 +58,6 @@ add_executable(gl ${SOURCE_FILES})
 target_link_libraries(gl glfw ${GLFW_LIBRARIES})
 target_link_libraries(gl glfw ${OPENGL_LIBRARY} ${GLFW_LIBRARIES})
 
-if ( ${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
-	target_link_libraries(gl imm32.lib)
-	endif({MSVC})
+#if ( ${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
+#	target_link_libraries(gl imm32.lib)
+	#endif({MSVC})

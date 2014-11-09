@@ -1,11 +1,18 @@
 #include "Scenario.h"
 #include "Action.h"
 
+#include "MeshData.h"
+#include "MeshDataManager.h"
+
 #include "Renderer.h"
+
+#include "MeshLib_Core/Face.h"
+#include "ColorManager.h"
 
 #include "imgui/imgui.h"
 
 #include "GUI.h"
+
 
 Scenario::Scenario() {
 }
@@ -35,7 +42,8 @@ void NormalScenario::buildActions() {
 void NormalScenario::render() {
 }
 
-PickScenario::PickScenario() {
+PickScenario::PickScenario()
+: pickingFace(nullptr), prevPickingFace(nullptr){
 
 }
 
@@ -51,43 +59,26 @@ void PickScenario::mousePressEvent() {
     
 }
 
-void PickScenario::mouseMoveEvent(GLFWwindow* window, int button, int action, int mods) {
-    const float window_width = ImGui::GetIO().DisplaySize.x;
-    
-    const float window_height = ImGui::GetIO().DisplaySize.y;
-    
-    	double xpos = 0, ypos = 0;
-    	glfwGetCursorPos(window, &xpos, &ypos);
-    
+void PickScenario::mouseMoveEvent(GLFWwindow* window, double xpos, double ypos) {
+    	if(!ImGui::IsMouseHoveringAnyWindow())
+        	{
 
-//    	if(!ImGui::IsMouseHoveringAnyWindow())
-//        	{
-////        		double xx, yy;
-//        
-//                glm::vec2 world_pos = GUI::screen2world(xpos, ypos);
-////        		xx = -(window_width/window_height * diameter) + xpos/window_width * 2 * (window_width / window_height * diameter);
-////        		yy = ( diameter) - ypos/window_height * 2 * diameter;
-//        
-////        		double pos[3] = {xx + center.x - translate_x, yy  + center.y - translate_y, 0};
-//                double pos[3] = {world_pos[0], world_pos[1], 0};
-//                presults = kd_nearest(ptree, pos);
-//        
-//        		if (!presults) {
-//        			return;
-//        		}
-//        		Vertex *v = (Vertex*)kd_res_item( presults, pos );
-//        
-//        		//Point Location
-//        		Face *prevPickingFace = pickingFace;
-//        		pickingFace = locate(v, Point(xx + center.x,  yy  + center.y, 0));
-//        		if (pickingFace != prevPickingFace) {
-//        			if (pickingFace) {
-//        				pickingFace->setColor(ColorManager::COLOR_PICKED_FACE);
-//        			}
-//        			if (prevPickingFace) {
-//        				prevPickingFace->setColor(ColorManager::COLOR_NORMAL_FACE);
-//        			}
-//        
-//        		}
-//        	}
+                MeshData *meshData = MeshDataManager::getCurrentMeshData();
+                glm::vec2 world_pos = GUI::screen2world(xpos, ypos);
+
+
+                double pos[3] = {world_pos[0], world_pos[1], 0};
+
+        		pickingFace = meshData->locate(pos);
+
+        		if (pickingFace != prevPickingFace) {
+        			if (pickingFace) {
+        				pickingFace->setColor(ColorManager::COLOR_PICKED_FACE);
+        			}
+        			if (prevPickingFace) {
+        				prevPickingFace->setColor(ColorManager::COLOR_NORMAL_FACE);
+        			}
+        
+        		}
+        	}
 }
