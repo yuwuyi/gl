@@ -41,7 +41,6 @@ void ActionWindow::render() {
     ImGui::BeginChild("",ImVec2(ImGui::GetWindowWidth(),200));
     
 	const std::vector<Action*>& m_actions = ScenarioManager::getCurrentScenario()->getActions();
-
 	for (size_t i = 0; i < m_actions.size(); ++i) {
 		Action *act = m_actions[i];
 		if (filter.PassFilter(act->getName().c_str())) {

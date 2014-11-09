@@ -57,6 +57,6 @@ add_executable(gl ${SOURCE_FILES})
 target_link_libraries(gl glfw ${GLFW_LIBRARIES})
 target_link_libraries(gl glfw ${OPENGL_LIBRARY} ${GLFW_LIBRARIES})
 
-#if ( ${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
+if ( ${CMAKE_CXX_COMPILER_ID} MATCHES "MSVC")
 	target_link_libraries(gl imm32.lib)
-	#endif({MSVC})
+	endif({MSVC})

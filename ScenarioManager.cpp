@@ -8,6 +8,8 @@ std::map<std::string, Scenario*> ScenarioManager::m_scenarios;
 void ScenarioManager::init() {
 	m_scenarios["Normal"] = new NormalScenario;
 	m_scenarios["Pick"] = new PickScenario;
+    
+    m_currentScenario = m_scenarios["Normal"];
 }
 
 void ScenarioManager::terminate() {

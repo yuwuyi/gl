@@ -24,6 +24,7 @@ public:
 	GLint triangle_num;
 	float getDiameter() const { return diameter; }
 	const glm::vec2& getCenter() const { return center; }
+
 private:
 	Mesh *m_mesh;
 	struct kdtree* ptree;

@@ -37,9 +37,10 @@ extern Face *pickingFace;
 extern RegionGrowing *regionGrowing;
 
 
+
+
+
 GLFWwindow * GUI::window = nullptr;
-
-
 
 void GUI::glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
@@ -72,11 +73,6 @@ static void glfw_mouse_move_callback(GLFWwindow* window, double xpos, double ypo
 	if (actWindow->isShown()) {
 		return;
 	}
-	//const float window_width = ImGui::GetIO().DisplaySize.x;
-
-	//const float window_height = ImGui::GetIO().DisplaySize.y;
-
-
 	//if(progStatus == PS_PICKING_SEED && !ImGui::IsMouseHoveringAnyWindow())
 	//{
 	//	double xx, yy;
@@ -257,3 +253,16 @@ glm::mat4 GUI::getMVP_inv() {
 	return glm::inverse(P*MV);
 }
 
+
+glm::vec2 GUI::screen2world(double xpos, double ypos) {
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+
+    double xx = 0, yy = 0;
+    float aspect = (float)width / (float)height;
+    xx = -(aspect * diameter) + xpos/width * 2 * (aspect * diameter);
+    yy = ( diameter) - ypos/height * 2 * diameter;
+    
+    return glm::vec2(xx + center.x - translate_x, yy  + center.y - translate_y);
+
+}

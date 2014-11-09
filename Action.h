@@ -11,6 +11,7 @@ public:
 	Action(const std::string& name)
 		: actName(name)
 	{}
+    virtual ~Action() {}
 	virtual const std::string& getName() const { return actName; }
 	virtual	void act() = 0;	
 protected:
@@ -18,16 +19,18 @@ protected:
 };
 
 
+
+
 class PickingAction : public Action {
 public:
 	PickingAction(const std::string& name) : Action(name) {
 
 	}
-	~PickingAction() {
+	virtual ~PickingAction() {
 
 	}
 
-	void act() {}
+	virtual void act() {}
 };
 
 #endif // Action_h__

@@ -29,6 +29,8 @@ public:
 	}
     static glm::mat4 getMVP();
 	static glm::mat4 getMVP_inv();
+
+    static glm::vec2 screen2world(double x, double y);
 private:
 	static GLFWwindow *window;
 
@@ -42,6 +44,7 @@ private:
     static float translate_x, translate_y;
     static float diameter;
 	static glm::vec2 center;
+
 };
 
 #endif

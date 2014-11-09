@@ -17,31 +17,14 @@
 
 #include "ActionWindow.h"
 #include "ShaderManager.h"
+#include "RendererManager.h"
+#include "ScenarioManager.h"
 
 ActionWindow *actWindow = nullptr;
 RegionGrowing *regionGrowing = nullptr;
 
+
 extern bool mousePressed[2];
-//projection and modelview matrices
-glm::mat4  P = glm::mat4(1);
-glm::mat4 MV = glm::mat4(1);
-glm::mat4 MVP_inv = glm::mat4(1);
-
-
-Face *pickingFace = nullptr;
-ProgStatus progStatus = PS_NORMAL;
-
-float translate_x = 0, translate_y = 0;
-//Here I'm going to try using the ImDrawVert..
-GLuint vaoID, vboColorID, vboIndexID;
-GLuint vboVerticesID;
-GLint triangle_num;
-
-
-
-
-static void prepareMeshData(Mesh *mesh) {
-}
 
 
 void OnRender() {
@@ -50,9 +33,7 @@ void OnRender() {
 
 static void OnShutdown() {
 	ShaderManager::terminate();
-    //Destroy vao and vbo
-    glDeleteBuffers(1, &vboVerticesID);
-    glDeleteVertexArrays(1, &vaoID);
+    
     cout<<"Shutdown successfull"<<endl;
 }
 
@@ -69,9 +50,7 @@ int main(int argc, char *argv[]) {
 	meshData->buildKDTree();
 	meshData->calculateCenter();
 
-    /*regionGrowing = new RegionGrowing();
-    regionGrowing->initPatches(mesh, 50);*/
-
+    
 	GUI::init();
 	GUI::setDiameter(meshData->getDiameter());
 	GUI::setCenter(meshData->getCenter());
@@ -82,15 +61,16 @@ int main(int argc, char *argv[]) {
 	MeshRenderer *meshRenderer = new MeshRenderer();
 	meshRenderer->loadData(meshData);
 
+    RendererManager::addRenderer(meshRenderer);
+    
+    
+    ScenarioManager::init();
     InitImGui();
 
     actWindow = new ActionWindow(window);
 
-    const float window_width = ImGui::GetIO().DisplaySize.x;
-
-    const float window_height = ImGui::GetIO().DisplaySize.y;
-
 	GLSLShader colorShader = ShaderManager::getShader("Color");
+    
     while (!glfwWindowShouldClose(window))
     {
 
@@ -151,16 +131,12 @@ int main(int argc, char *argv[]) {
 
   
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-        meshRenderer->render();
-        if (progStatus == PS_PICKING_SEED) {
-            if (pickingFace) {
-                ImGui::SetTooltip("Face %d", pickingFace->index());
-            } else {
-                ImGui::SetTooltip("     Picking    ");
-            }
 
-        }
-
+          RendererManager::render();
+        
+        ScenarioManager::getCurrentScenario();
+        
+        
         ImGui::Render();
 
 

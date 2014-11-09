@@ -1,6 +1,7 @@
 #ifndef ScenarioManager_h__
 #define ScenarioManager_h__
 
+#include <string>
 #include <map>
 
 class Scenario;
