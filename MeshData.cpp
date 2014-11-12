@@ -69,9 +69,7 @@ Face *MeshData::locate(Vertex *vertex, const Point& point) {
 		inFace = *vfit;
 		float lambda[3];
 		barycentric(inFace, point, lambda);
-		logutil::dbg("face: %d", inFace->index() + 1);
 		for (int i = 0; i < 3; ++i) {
-			logutil::dbg("lambda[%d] = %f", i, lambda[i]);
 			if (lambda[i] < 0 || lambda[i] > 1) {
 				inFace = nullptr;
 				break;
