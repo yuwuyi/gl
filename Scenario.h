@@ -48,7 +48,7 @@ public:
     virtual void mousePressEvent();
     virtual void mouseMoveEvent(GLFWwindow* window, double xpos, double ypos);
 private:
-    Face * pickingFace, *prevPickingFace;
+    Face * pickingFace;
 };
 
 

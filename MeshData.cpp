@@ -6,6 +6,7 @@
 #include "Log/log.h"
 #include "kdtree/kdtree.h"
 
+#include "Log/log.h"
 
 static void barycentric(Face *f, const Point& point, float  (&lambda)[3]) {
 	Point points [3] ;
@@ -68,7 +69,9 @@ Face *MeshData::locate(Vertex *vertex, const Point& point) {
 		inFace = *vfit;
 		float lambda[3];
 		barycentric(inFace, point, lambda);
+		logutil::dbg("face: %d", inFace->index() + 1);
 		for (int i = 0; i < 3; ++i) {
+			logutil::dbg("lambda[%d] = %f", i, lambda[i]);
 			if (lambda[i] < 0 || lambda[i] > 1) {
 				inFace = nullptr;
 				break;
@@ -90,8 +93,10 @@ Face *MeshData::locate(double pos[3]) {
         return nullptr;
     }
     
+	Point pt(pos[0], pos[1], pos[2]);
     Vertex *v = (Vertex*)kd_res_item( presults, pos );
-    return locate(v, Point(pos[0], pos[1], pos[2]));
+	
+    return locate(v, pt);
 
 }
 

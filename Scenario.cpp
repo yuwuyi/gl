@@ -43,7 +43,7 @@ void NormalScenario::render() {
 }
 
 PickScenario::PickScenario()
-: pickingFace(nullptr), prevPickingFace(nullptr){
+: pickingFace(nullptr) {
 
 }
 
@@ -69,8 +69,9 @@ void PickScenario::mouseMoveEvent(GLFWwindow* window, double xpos, double ypos) 
 
                 double pos[3] = {world_pos[0], world_pos[1], 0};
 
+				Face *prevPickingFace = pickingFace;
         		pickingFace = meshData->locate(pos);
-
+				
         		if (pickingFace != prevPickingFace) {
         			if (pickingFace) {
         				pickingFace->setColor(ColorManager::COLOR_PICKED_FACE);
@@ -78,7 +79,7 @@ void PickScenario::mouseMoveEvent(GLFWwindow* window, double xpos, double ypos) 
         			if (prevPickingFace) {
         				prevPickingFace->setColor(ColorManager::COLOR_NORMAL_FACE);
         			}
-        
+					
         		}
         	}
 }
