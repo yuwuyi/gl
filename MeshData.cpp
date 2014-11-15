@@ -33,6 +33,7 @@ MeshData::MeshData(Mesh *mesh) : m_mesh(mesh), ptree(nullptr), presults(nullptr)
 MeshData::~MeshData() {
 	if (presults) {
 		kd_res_free(presults );
+        presults = 0;
 	}
 
 	kd_free( ptree );

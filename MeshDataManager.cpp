@@ -15,3 +15,9 @@ MeshData* MeshDataManager::getCurrentMeshData() {
 void MeshDataManager::setCurrent(MeshData *m) {
     m_currentMeshData = m;
 }
+
+void MeshDataManager::terminate() {
+    for (auto md : m_meshdata) {
+        delete md;
+    }
+}

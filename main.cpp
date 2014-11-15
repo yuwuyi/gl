@@ -28,13 +28,13 @@ RegionGrowing *regionGrowing = nullptr;
 extern bool mousePressed[2];
 
 
-void OnRender() {
-}
-
 
 static void OnShutdown() {
 	ShaderManager::terminate();
     
+    GUI::terminate();
+    MeshDataManager::terminate();
+    RendererManager::terminate();
     cout<<"Shutdown successfull"<<endl;
 }
 
@@ -85,26 +85,6 @@ int main(int argc, char *argv[]) {
         UpdateImGui();
 
 
-        static bool show_test_window = false;
-        static bool show_another_window = false;
-
-  
-
-        // 2. Show another simple window, this time using an explicit Begin/End pair
-        if (0 || show_another_window)
-         {
-            ImGui::Begin("Another Window", &show_another_window, ImVec2(200,100));
-            ImGui::Text("Hello");
-            ImGui::End();
-        }
-
-        // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-        if ( 0 && show_test_window)
-        {
-            ImGui::SetNewWindowDefaultPos(ImVec2(650, 20));        // Normally user code doesn't need/want to call this, because positions are saved in .ini file. Here we just want to make the demo initial state a bit more friendly!
-            ImGui::ShowTestWindow(&show_test_window);
-        }
-
 		//here is the mode window..
 		if (1) {
 			const ImGuiWindowFlags layout_flags 
@@ -136,7 +116,7 @@ int main(int argc, char *argv[]) {
   
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-          RendererManager::render();
+        RendererManager::render();
         
         ScenarioManager::getCurrentScenario();
         
@@ -154,7 +134,5 @@ int main(int argc, char *argv[]) {
     ImGui::Shutdown();
    
     delete actWindow;
-    delete meshData;
-	delete meshRenderer;
     exit(EXIT_SUCCESS);
 }
